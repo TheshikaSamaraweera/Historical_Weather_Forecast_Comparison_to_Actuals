@@ -1,0 +1,74 @@
+# Initialize your weather report log file
+# Create a text file called rx_poc.log.
+
+
+touch rx_poc.log
+
+# Add a header to your weather report.
+
+header=$(echo -e "year\tmonth\tday\thour\tobs_tmp\tfc_temp")
+echo $header>rx_poc.log
+
+# Create a text file called rx_poc.sh and make it a bash script.
+
+nano rx_poc.sh
+echo "Hello, this is a test script."
+chmod +x rx_poc.sh
+
+# Download today’s weather report from wttr.in
+# Create the filename for today’s wttr.in weather report
+
+today=$(date +%Y%m%d)
+weather_report=raw_data_$today
+weather_report=raw_data_$(date +%Y%m%d)
+
+# Download the wttr.in weather report for Casablanca and save it with the filename you created
+
+city=Casablanca
+curl wttr.in/$city --output $weather_report
+
+#  Extract the required data from the raw data file and assign them to variables obs_tmp and fc_temp.
+
+echo "three two one" | rev | cut -d " " -f 1 | rev
+echo "three two one " | rev | cut -d " " -f 1 | rev
+echo "three two one " | xargs | rev | cut -d " " -f 1 | rev
+grep °C $weather_report > temperatures.txt
+
+#  Extract the current temperature, and store it in a shell variable called obs_tmp
+
+obs_tmp=$(head -1 temperatures.txt | tr -s " " | xargs | rev | cut -d " " -f2 | rev)
+
+# Extract tomorrow’s temperature forecast for noon, and store it in a shell variable called fc_tmp
+
+fc_temp=$(head -3 temperatures.txt | tail -1 | tr -s " " | xargs | cut -d "C" -f2 | rev | cut -d " " -f2 | rev)
+
+# Store the current hour, day, month, and year in corresponding shell variables
+
+hour=$(TZ='Morocco/Casablanca' date -u +%H) 
+day=$(TZ='Morocco/Casablanca' date -u +%d) 
+month=$(TZ='Morocco/Casablanca' date +%m)
+year=$(TZ='Morocco/Casablanca' date +%Y)
+
+#  Merge the fields into a tab-delimited record, corresponding to a single row in Table 1.
+
+record=$(echo -e "$year\t$month\t$day\t$hour\t$obs_tmp\t$fc_temp")
+echo $record>>rx_poc.log
+
+
+# Determine what time of day to run your script
+
+UTC=UTC+5.5
+
+
+# Create a cron job that runs your script
+
+crontab -e
+0 8 * * * /home/project/rx_poc.sh
+
+
+# Check Result
+
+ls
+cat rx_poc.log
+cat temperatures.txt
+
